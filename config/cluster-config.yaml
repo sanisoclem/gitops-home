@@ -4,14 +4,14 @@ metadata:
   name: home-config
 data:
   TZ: UTC
-  HOME_ZONE: placeholder
+  HOME_ZONE: svc.k8s.shokugami.place
 
-  NAS_HOST: placeholder
-  NAS_MEDIA_PATH: placeholder
-  NAS_PHOTOS_PATH: placeholder
-  NAS_KNOWLEDGE_PATH: placeholder
-  NAS_EMBY_PATH: placeholder
+  NAS_HOST: 10.11.7.30
+  NAS_MEDIA_PATH: /mnt/main/media
+  NAS_PHOTOS_PATH: /mnt/main/usr/immich/upload
+  NAS_KNOWLEDGE_PATH: /mnt/main/svc/knowledge
+  NAS_EMBY_PATH: /mnt/main/svc/emby
 
-  S3_ENDPOINT: placeholder
-  S3_BACKUP_BUCKET: placeholder
+  S3_ENDPOINT: http://10.11.7.30:30292
+  S3_BACKUP_BUCKET: backups
 

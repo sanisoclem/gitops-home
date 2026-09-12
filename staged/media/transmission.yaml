@@ -16,55 +16,24 @@ spec:
       labels:
         app: transmission
         share: media
+      annotations:
+        k8s.v1.cni.cncf.io/networks: '[{"name":"vpn-egress","default-route":["10.7.123.1"]}]'
     spec:
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+          - 1.1.1.1
+          - 1.0.0.1
       securityContext:
         fsGroup: 1000
+      nodeSelector:
+        egress: vpn
+      tolerations:
+        - key: egress
+          operator: Equal
+          value: vpn
+          effect: NoSchedule
       containers:
-        - name: gluetun
-          image: qmcgaw/gluetun:v3.41.3
-          securityContext:
-            capabilities:
-              add: [NET_ADMIN]
-          env:
-            - name: VPN_SERVICE_PROVIDER
-              valueFrom:
-                secretKeyRef:
-                  name: vpn
-                  key: provider
-            - name: VPN_TYPE
-              value: wireguard
-            - name: WIREGUARD_PRIVATE_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: vpn
-                  key: wireguard-private-key
-            - name: WIREGUARD_ADDRESSES
-              valueFrom:
-                secretKeyRef:
-                  name: vpn
-                  key: wireguard-addresses
-            - name: SERVER_COUNTRIES
-              valueFrom:
-                secretKeyRef:
-                  name: vpn
-                  key: server-countries
-                  optional: true
-            - name: FIREWALL_INPUT_PORTS
-              value: "9091"
-            - name: TZ
-              valueFrom:
-                configMapKeyRef:
-                  name: home-config
-                  key: TZ
-          volumeMounts:
-            - name: tun
-              mountPath: /dev/net/tun
-          resources:
-            requests:
-              cpu: 50m
-              memory: 128Mi
-            limits:
-              memory: 256Mi
         - name: transmission
           image: lscr.io/linuxserver/transmission:4.1.3-r0-ls361
           env:
@@ -99,10 +68,6 @@ spec:
           nfs:
             server: placeholder
             path: placeholder
-        - name: tun
-          hostPath:
-            path: /dev/net/tun
-            type: CharDevice
 ---
 apiVersion: v1
 kind: Service

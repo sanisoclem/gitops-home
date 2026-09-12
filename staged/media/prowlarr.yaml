@@ -16,9 +16,23 @@ spec:
       labels:
         app: prowlarr
         share: media
+      annotations:
+        k8s.v1.cni.cncf.io/networks: '[{"name":"vpn-egress","default-route":["10.7.123.1"]}]'
     spec:
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+          - 1.1.1.1
+          - 1.0.0.1
       securityContext:
         fsGroup: 1000
+      nodeSelector:
+        egress: vpn
+      tolerations:
+        - key: egress
+          operator: Equal
+          value: vpn
+          effect: NoSchedule
       containers:
         - name: prowlarr
           image: lscr.io/linuxserver/prowlarr:2.5.2.5491-ls159
