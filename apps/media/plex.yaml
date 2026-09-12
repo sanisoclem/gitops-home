@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex
+  labels:
+    share: media
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: plex
+  template:
+    metadata:
+      labels:
+        app: plex
+        share: media
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: plex
+          image: lscr.io/linuxserver/plex:1.43.4.10903-e5521bd8c-ls324
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: home-config
+                  key: TZ
+            - name: VERSION
+              value: docker
+            - name: PLEX_CLAIM
+              valueFrom:
+                secretKeyRef:
+                  name: plex
+                  key: claim-token
+                  optional: true
+          ports:
+            - name: http
+              containerPort: 32400
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: media
+              mountPath: /data
+            - name: transcode
+              mountPath: /transcode
+          resources:
+            requests:
+              cpu: 500m
+              memory: 2Gi
+            limits:
+              memory: 6Gi
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: plex
+        - name: media
+          nfs:
+            server: placeholder
+            path: placeholder
+        - name: transcode
+          emptyDir:
+            sizeLimit: 20Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: plex
+spec:
+  selector:
+    app: plex
+  ports:
+    - name: http
+      port: 32400
+      targetPort: http
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: plex
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 30Gi
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: plex
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: home
+      namespace: nginx-gateway
+  hostnames:
+    - plex.placeholder
+  rules:
+    - backendRefs:
+        - name: plex
+          port: 32400

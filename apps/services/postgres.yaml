@@ -1,0 +1,89 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+spec:
+  instances: 1
+  imageName: ghcr.io/tensorchord/cloudnative-vectorchord:17-0.4.3
+
+  postgresql:
+    shared_preload_libraries:
+      - vchord.so
+
+  storage:
+    storageClass: database
+    size: 40Gi
+
+  bootstrap:
+    initdb:
+      database: app
+      owner: app
+
+  managed:
+    roles:
+      - name: immich
+        ensure: present
+        login: true
+        superuser: true
+        passwordSecret:
+          name: immich-db
+      - name: paperless
+        ensure: present
+        login: true
+        passwordSecret:
+          name: paperless-db
+
+  monitoring:
+    enablePodMonitor: true
+
+  backup:
+    retentionPolicy: 30d
+    barmanObjectStore:
+      destinationPath: s3://backups/postgres
+      endpointURL: placeholder
+      s3Credentials:
+        accessKeyId:
+          name: s3
+          key: access-key
+        secretAccessKey:
+          name: s3
+          key: secret-key
+      wal:
+        compression: gzip
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      memory: 2Gi
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: postgres
+spec:
+  schedule: "0 0 3 * * *"
+  backupOwnerReference: self
+  cluster:
+    name: postgres
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: immich
+spec:
+  cluster:
+    name: postgres
+  name: immich
+  owner: immich
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: paperless
+spec:
+  cluster:
+    name: postgres
+  name: paperless
+  owner: paperless

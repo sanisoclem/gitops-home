@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emby
+  labels:
+    share: emby
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: emby
+  template:
+    metadata:
+      labels:
+        app: emby
+        share: emby
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: emby
+          image: lscr.io/linuxserver/emby:4.10.0.40-ls297
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: home-config
+                  key: TZ
+          ports:
+            - name: http
+              containerPort: 8096
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: emby
+              mountPath: /data
+            - name: transcode
+              mountPath: /transcode
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              memory: 4Gi
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: emby
+        - name: emby
+          nfs:
+            server: placeholder
+            path: placeholder
+        - name: transcode
+          emptyDir:
+            sizeLimit: 20Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: emby
+spec:
+  selector:
+    app: emby
+  ports:
+    - name: http
+      port: 8096
+      targetPort: http
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: emby
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: emby
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: home
+      namespace: nginx-gateway
+  hostnames:
+    - emby.placeholder
+  rules:
+    - backendRefs:
+        - name: emby
+          port: 8096

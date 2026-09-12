@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: immich-machine-learning
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: immich-machine-learning
+  template:
+    metadata:
+      labels:
+        app: immich-machine-learning
+    spec:
+      containers:
+        - name: immich-machine-learning
+          image: ghcr.io/immich-app/immich-machine-learning:v2.3.1
+          env:
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: home-config
+                  key: TZ
+            - name: MACHINE_LEARNING_CACHE_FOLDER
+              value: /cache
+          ports:
+            - name: http
+              containerPort: 3003
+          volumeMounts:
+            - name: cache
+              mountPath: /cache
+          resources:
+            requests:
+              cpu: 200m
+              memory: 1Gi
+            limits:
+              memory: 4Gi
+      volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: immich-machine-learning
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich-machine-learning
+spec:
+  selector:
+    app: immich-machine-learning
+  ports:
+    - name: http
+      port: 3003
+      targetPort: http
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-machine-learning
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi

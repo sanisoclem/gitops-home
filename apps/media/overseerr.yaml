@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: overseerr
+  labels:
+    share: media
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: overseerr
+  template:
+    metadata:
+      labels:
+        app: overseerr
+        share: media
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: overseerr
+          image: ghcr.io/sct/overseerr:1.35.0
+          env:
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: home-config
+                  key: TZ
+          ports:
+            - name: http
+              containerPort: 5055
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+            - name: media
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 50m
+              memory: 512Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: overseerr
+        - name: media
+          nfs:
+            server: placeholder
+            path: placeholder
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: overseerr
+spec:
+  selector:
+    app: overseerr
+  ports:
+    - name: http
+      port: 5055
+      targetPort: http
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: overseerr
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: overseerr
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: home
+      namespace: nginx-gateway
+  hostnames:
+    - overseerr.placeholder
+  rules:
+    - backendRefs:
+        - name: overseerr
+          port: 5055

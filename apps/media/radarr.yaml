@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: radarr
+  labels:
+    share: media
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: radarr
+  template:
+    metadata:
+      labels:
+        app: radarr
+        share: media
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: radarr
+          image: lscr.io/linuxserver/radarr:6.3.0.10514-ls315
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: home-config
+                  key: TZ
+          ports:
+            - name: http
+              containerPort: 7878
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: media
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 50m
+              memory: 512Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: radarr
+        - name: media
+          nfs:
+            server: placeholder
+            path: placeholder
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: radarr
+spec:
+  selector:
+    app: radarr
+  ports:
+    - name: http
+      port: 7878
+      targetPort: http
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: radarr
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: radarr
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: home
+      namespace: nginx-gateway
+  hostnames:
+    - radarr.placeholder
+  rules:
+    - backendRefs:
+        - name: radarr
+          port: 7878

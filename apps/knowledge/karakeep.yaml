@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: karakeep
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: karakeep
+  template:
+    metadata:
+      labels:
+        app: karakeep
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: karakeep
+          image: ghcr.io/karakeep-app/karakeep:0.33.2
+          env:
+            - name: DATA_DIR
+              value: /data
+            - name: MEILI_ADDR
+              value: http://meilisearch.home-services.svc.cluster.local:7700
+            - name: MEILI_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: karakeep
+                  key: meilisearch-master-key
+            - name: NEXTAUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: karakeep
+                  key: nextauth-secret
+            - name: NEXTAUTH_URL
+              value: https://karakeep.placeholder
+            - name: BROWSER_WEB_URL
+              value: http://localhost:9222
+          ports:
+            - name: http
+              containerPort: 3000
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              memory: 2Gi
+        - name: chrome
+          image: gcr.io/zenika-hub/alpine-chrome:124
+          args:
+            - --no-sandbox
+            - --disable-gpu
+            - --disable-dev-shm-usage
+            - --remote-debugging-address=0.0.0.0
+            - --remote-debugging-port=9222
+            - --hide-scrollbars
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: karakeep
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: karakeep
+spec:
+  selector:
+    app: karakeep
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: karakeep
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: karakeep
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: home
+      namespace: nginx-gateway
+  hostnames:
+    - karakeep.placeholder
+  rules:
+    - backendRefs:
+        - name: karakeep
+          port: 3000

@@ -1,0 +1,144 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transmission
+  labels:
+    share: media
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: transmission
+  template:
+    metadata:
+      labels:
+        app: transmission
+        share: media
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: gluetun
+          image: qmcgaw/gluetun:v3.41.3
+          securityContext:
+            capabilities:
+              add: [NET_ADMIN]
+          env:
+            - name: VPN_SERVICE_PROVIDER
+              valueFrom:
+                secretKeyRef:
+                  name: vpn
+                  key: provider
+            - name: VPN_TYPE
+              value: wireguard
+            - name: WIREGUARD_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: vpn
+                  key: wireguard-private-key
+            - name: WIREGUARD_ADDRESSES
+              valueFrom:
+                secretKeyRef:
+                  name: vpn
+                  key: wireguard-addresses
+            - name: SERVER_COUNTRIES
+              valueFrom:
+                secretKeyRef:
+                  name: vpn
+                  key: server-countries
+                  optional: true
+            - name: FIREWALL_INPUT_PORTS
+              value: "9091"
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: home-config
+                  key: TZ
+          volumeMounts:
+            - name: tun
+              mountPath: /dev/net/tun
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 256Mi
+        - name: transmission
+          image: lscr.io/linuxserver/transmission:4.1.3-r0-ls361
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: home-config
+                  key: TZ
+          ports:
+            - name: http
+              containerPort: 9091
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: media
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              memory: 1Gi
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: transmission
+        - name: media
+          nfs:
+            server: placeholder
+            path: placeholder
+        - name: tun
+          hostPath:
+            path: /dev/net/tun
+            type: CharDevice
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: transmission
+spec:
+  selector:
+    app: transmission
+  ports:
+    - name: http
+      port: 9091
+      targetPort: http
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: transmission
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: transmission
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: home
+      namespace: nginx-gateway
+  hostnames:
+    - transmission.placeholder
+  rules:
+    - backendRefs:
+        - name: transmission
+          port: 9091

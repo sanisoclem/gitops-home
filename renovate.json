@@ -1,0 +1,29 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits"
+  ],
+  "kubernetes": {
+    "managerFilePatterns": ["/^apps/.+\\.yaml$/"]
+  },
+  "packageRules": [
+    {
+      "description": "Immich is pinned to match a library being migrated in; moving it is a decision, not a chore",
+      "matchPackageNames": ["ghcr.io/immich-app/immich-server", "ghcr.io/immich-app/immich-machine-learning"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "The arr stack moves together",
+      "matchPackageNames": ["lscr.io/linuxserver/sonarr", "lscr.io/linuxserver/radarr", "lscr.io/linuxserver/prowlarr", "lscr.io/linuxserver/bazarr"],
+      "groupName": "arr stack"
+    },
+    {
+      "description": "A database major is a migration",
+      "matchPackageNames": ["ghcr.io/tensorchord/cloudnative-vectorchord", "couchdb"],
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    }
+  ]
+}

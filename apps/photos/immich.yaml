@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: immich
+  labels:
+    share: library
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: immich
+  template:
+    metadata:
+      labels:
+        app: immich
+        share: library
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: immich
+          image: ghcr.io/immich-app/immich-server:v2.3.1
+          env:
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: home-config
+                  key: TZ
+            - name: DB_HOSTNAME
+              value: postgres-rw.home-services.svc.cluster.local
+            - name: DB_DATABASE_NAME
+              value: immich
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: immich-db
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: immich-db
+                  key: password
+            - name: REDIS_HOSTNAME
+              value: valkey.home-services.svc.cluster.local
+            - name: IMMICH_MACHINE_LEARNING_URL
+              value: http://immich-machine-learning:3003
+          ports:
+            - name: http
+              containerPort: 2283
+          volumeMounts:
+            - name: library
+              mountPath: /usr/src/app/upload
+          resources:
+            requests:
+              cpu: 200m
+              memory: 1Gi
+            limits:
+              memory: 3Gi
+      volumes:
+        - name: library
+          nfs:
+            server: placeholder
+            path: placeholder
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich
+spec:
+  selector:
+    app: immich
+  ports:
+    - name: http
+      port: 2283
+      targetPort: http
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: immich
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: home
+      namespace: nginx-gateway
+  hostnames:
+    - immich.placeholder
+  rules:
+    - backendRefs:
+        - name: immich
+          port: 2283

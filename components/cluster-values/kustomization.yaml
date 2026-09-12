@@ -1,0 +1,113 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+replacements:
+  - source:
+      kind: ConfigMap
+      name: home-config
+      fieldPath: data.HOME_ZONE
+    targets:
+      - select:
+          kind: HTTPRoute
+        fieldPaths:
+          - spec.hostnames.0
+        options:
+          delimiter: '.'
+          index: 1
+
+  - source:
+      kind: ConfigMap
+      name: home-config
+      fieldPath: data.S3_ENDPOINT
+    targets:
+      - select:
+          kind: Cluster
+        fieldPaths:
+          - spec.backup.barmanObjectStore.endpointURL
+
+  - source:
+      kind: ConfigMap
+      name: home-config
+      fieldPath: data.NAS_HOST
+    targets:
+      - select:
+          kind: Deployment
+          labelSelector: share=media
+        fieldPaths:
+          - spec.template.spec.volumes.[name=media].nfs.server
+
+  - source:
+      kind: ConfigMap
+      name: home-config
+      fieldPath: data.NAS_MEDIA_PATH
+    targets:
+      - select:
+          kind: Deployment
+          labelSelector: share=media
+        fieldPaths:
+          - spec.template.spec.volumes.[name=media].nfs.path
+
+  - source:
+      kind: ConfigMap
+      name: home-config
+      fieldPath: data.NAS_HOST
+    targets:
+      - select:
+          kind: Deployment
+          labelSelector: share=library
+        fieldPaths:
+          - spec.template.spec.volumes.[name=library].nfs.server
+
+  - source:
+      kind: ConfigMap
+      name: home-config
+      fieldPath: data.NAS_PHOTOS_PATH
+    targets:
+      - select:
+          kind: Deployment
+          labelSelector: share=library
+        fieldPaths:
+          - spec.template.spec.volumes.[name=library].nfs.path
+
+  - source:
+      kind: ConfigMap
+      name: home-config
+      fieldPath: data.NAS_HOST
+    targets:
+      - select:
+          kind: Deployment
+          labelSelector: share=knowledge
+        fieldPaths:
+          - spec.template.spec.volumes.[name=knowledge].nfs.server
+
+  - source:
+      kind: ConfigMap
+      name: home-config
+      fieldPath: data.NAS_KNOWLEDGE_PATH
+    targets:
+      - select:
+          kind: Deployment
+          labelSelector: share=knowledge
+        fieldPaths:
+          - spec.template.spec.volumes.[name=knowledge].nfs.path
+
+  - source:
+      kind: ConfigMap
+      name: home-config
+      fieldPath: data.NAS_HOST
+    targets:
+      - select:
+          kind: Deployment
+          labelSelector: share=emby
+        fieldPaths:
+          - spec.template.spec.volumes.[name=emby].nfs.server
+
+  - source:
+      kind: ConfigMap
+      name: home-config
+      fieldPath: data.NAS_EMBY_PATH
+    targets:
+      - select:
+          kind: Deployment
+          labelSelector: share=emby
+        fieldPaths:
+          - spec.template.spec.volumes.[name=emby].nfs.path

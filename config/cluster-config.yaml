@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: home-config
+data:
+  TZ: UTC
+  HOME_ZONE: placeholder
+
+  NAS_HOST: placeholder
+  NAS_MEDIA_PATH: placeholder
+  NAS_PHOTOS_PATH: placeholder
+  NAS_KNOWLEDGE_PATH: placeholder
+  NAS_EMBY_PATH: placeholder
+
+  S3_ENDPOINT: placeholder
+  S3_BACKUP_BUCKET: placeholder
+
