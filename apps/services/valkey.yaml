@@ -33,7 +33,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: valkey
+            claimName: valkey-data
 ---
 apiVersion: v1
 kind: Service
@@ -50,7 +50,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: valkey
+  name: valkey-data
 spec:
   accessModes: [ReadWriteOnce]
   resources:

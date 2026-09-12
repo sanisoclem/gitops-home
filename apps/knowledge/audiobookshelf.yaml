@@ -47,10 +47,10 @@ spec:
       volumes:
         - name: config
           persistentVolumeClaim:
-            claimName: audiobookshelf
+            claimName: audiobookshelf-config
         - name: metadata
           persistentVolumeClaim:
-            claimName: audiobookshelf-metadata
+            claimName: audiobookshelf-meta
         - name: knowledge
           nfs:
             server: placeholder
@@ -71,7 +71,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: audiobookshelf
+  name: audiobookshelf-config
 spec:
   accessModes: [ReadWriteOnce]
   resources:
@@ -81,7 +81,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: audiobookshelf-metadata
+  name: audiobookshelf-meta
 spec:
   accessModes: [ReadWriteOnce]
   resources:

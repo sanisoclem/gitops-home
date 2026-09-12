@@ -68,7 +68,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: karakeep
+            claimName: karakeep-data
 ---
 apiVersion: v1
 kind: Service
@@ -85,7 +85,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: karakeep
+  name: karakeep-data
 spec:
   accessModes: [ReadWriteOnce]
   resources:

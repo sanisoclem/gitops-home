@@ -72,10 +72,10 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: paperless-data
+            claimName: paperless-state
         - name: media
           persistentVolumeClaim:
-            claimName: paperless-media
+            claimName: paperless-files
         - name: knowledge
           nfs:
             server: placeholder
@@ -96,7 +96,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: paperless-data
+  name: paperless-state
 spec:
   accessModes: [ReadWriteOnce]
   resources:
@@ -106,7 +106,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: paperless-media
+  name: paperless-files
 spec:
   accessModes: [ReadWriteOnce]
   resources:
