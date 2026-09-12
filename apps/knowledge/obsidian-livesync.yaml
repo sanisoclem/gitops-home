@@ -43,6 +43,7 @@ spec:
       labels:
         app: couchdb
     spec:
+      enableServiceLinks: false
       securityContext:
         fsGroup: 5984
       containers:
@@ -50,6 +51,16 @@ spec:
           image: couchdb:3.5.2
           terminationMessagePolicy: FallbackToLogsOnError
           env:
+            - name: COUCHDB_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: couchdb
+                  key: secret
+            - name: COUCHDB_ERLANG_COOKIE
+              valueFrom:
+                secretKeyRef:
+                  name: couchdb
+                  key: erlang-cookie
             - name: COUCHDB_USER
               valueFrom:
                 secretKeyRef:
