@@ -46,6 +46,15 @@ spec:
       enableServiceLinks: false
       securityContext:
         fsGroup: 5984
+      initContainers:
+        - name: seed-config
+          image: couchdb:3.5.2
+          command: ["/bin/sh", "-c", "cp /config/local.ini /opt/couchdb/etc/local.d/local.ini"]
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: local-d
+              mountPath: /opt/couchdb/etc/local.d
       containers:
         - name: couchdb
           image: couchdb:3.5.2
@@ -77,9 +86,8 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /opt/couchdb/data
-            - name: config
-              mountPath: /opt/couchdb/etc/local.d/local.ini
-              subPath: local.ini
+            - name: local-d
+              mountPath: /opt/couchdb/etc/local.d
           resources:
             requests:
               cpu: 50m
@@ -93,6 +101,8 @@ spec:
         - name: config
           configMap:
             name: couchdb-config
+        - name: local-d
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
