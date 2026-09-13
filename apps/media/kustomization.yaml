@@ -3,6 +3,5 @@ kind: Kustomization
 resources:
   - ../../config
   - emby.yaml
-  - vpn-egress.yaml
 components:
   - ../../components/cluster-values
