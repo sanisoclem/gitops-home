@@ -3,10 +3,7 @@ kind: Kustomization
 resources:
   - ../../config
   - secrets.yaml
-  - audiobookshelf.yaml
   - paperless.yaml
-  - karakeep.yaml
-  - obsidian-livesync.yaml
 components:
   - ../../components/cluster-values
 
@@ -21,14 +18,6 @@ replacements:
           name: paperless
         fieldPaths:
           - spec.template.spec.containers.[name=paperless].env.[name=PAPERLESS_URL].value
-        options:
-          delimiter: '.'
-          index: 1
-      - select:
-          kind: Deployment
-          name: karakeep
-        fieldPaths:
-          - spec.template.spec.containers.[name=karakeep].env.[name=NEXTAUTH_URL].value
         options:
           delimiter: '.'
           index: 1

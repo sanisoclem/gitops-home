@@ -5,6 +5,5 @@ resources:
   - secrets.yaml
   - postgres.yaml
   - valkey.yaml
-  - meilisearch.yaml
 components:
   - ../../components/cluster-values

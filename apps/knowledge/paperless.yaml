@@ -52,6 +52,13 @@ spec:
                 secretKeyRef:
                   name: paperless
                   key: secret-key
+            - name: PAPERLESS_ADMIN_USER
+              value: admin
+            - name: PAPERLESS_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: paperless
+                  key: admin-password
             - name: PAPERLESS_URL
               value: https://paperless.placeholder
             - name: PAPERLESS_CONSUMPTION_DIR
