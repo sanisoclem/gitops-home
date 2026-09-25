@@ -86,6 +86,31 @@ spec:
               memory: 1Gi
             limits:
               memory: 3Gi
+        - name: r2-inbox
+          image: rclone/rclone:1.75.1
+          command: ["/bin/sh", "-c"]
+          args:
+            - while true; do rclone move -v r2:paperless-inbox /knowledge/paperless-inbox; sleep 60; done
+          env:
+            - name: RCLONE_CONFIG_R2_TYPE
+              value: s3
+            - name: RCLONE_CONFIG_R2_PROVIDER
+              value: Cloudflare
+          envFrom:
+            - secretRef:
+                name: paperless-r2
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+          volumeMounts:
+            - name: knowledge
+              mountPath: /knowledge
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
       volumes:
         - name: data
           persistentVolumeClaim:
