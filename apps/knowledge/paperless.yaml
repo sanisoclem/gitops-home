@@ -63,6 +63,18 @@ spec:
               value: https://paperless.placeholder
             - name: PAPERLESS_CONSUMPTION_DIR
               value: /knowledge/paperless-inbox
+            - name: PAPERLESS_AI_ENABLED
+              value: "true"
+            - name: PAPERLESS_AI_LLM_EMBEDDING_BACKEND
+              value: huggingface
+            - name: PAPERLESS_AI_LLM_BACKEND
+              value: ollama
+            - name: PAPERLESS_AI_LLM_ENDPOINT
+              value: http://10.11.7.11:11434
+            - name: PAPERLESS_AI_LLM_MODEL
+              value: gemma3:12b
+            - name: PAPERLESS_AI_LLM_REQUEST_TIMEOUT
+              value: "30"
           ports:
             - name: http
               containerPort: 8000
