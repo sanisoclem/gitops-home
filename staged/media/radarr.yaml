@@ -4,6 +4,7 @@ metadata:
   name: radarr
   labels:
     share: media
+    nas-apps: "true"
 spec:
   replicas: 1
   strategy:
@@ -36,8 +37,9 @@ spec:
             - name: http
               containerPort: 7878
           volumeMounts:
-            - name: config
+            - name: apps
               mountPath: /config
+              subPath: media/radarr
             - name: media
               mountPath: /data
           resources:
@@ -47,9 +49,10 @@ spec:
             limits:
               memory: 512Mi
       volumes:
-        - name: config
-          persistentVolumeClaim:
-            claimName: radarr
+        - name: apps
+          nfs:
+            server: placeholder
+            path: placeholder
         - name: media
           nfs:
             server: placeholder
@@ -66,16 +69,6 @@ spec:
     - name: http
       port: 7878
       targetPort: http
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: radarr
-spec:
-  accessModes: [ReadWriteOnce]
-  resources:
-    requests:
-      storage: 2Gi
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute

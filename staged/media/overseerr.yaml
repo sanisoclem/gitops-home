@@ -68,6 +68,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: overseerr
 spec:
+  storageClassName: block-backed
   accessModes: [ReadWriteOnce]
   resources:
     requests:

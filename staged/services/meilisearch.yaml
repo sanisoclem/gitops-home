@@ -61,6 +61,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: meilisearch-data
 spec:
+  storageClassName: block-backed
   accessModes: [ReadWriteOnce]
   resources:
     requests:

@@ -121,6 +121,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: couchdb-data
 spec:
+  storageClassName: block-backed
   accessModes: [ReadWriteOnce]
   resources:
     requests:

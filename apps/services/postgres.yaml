@@ -1,7 +1,29 @@
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: postgres
+spec:
+  retentionPolicy: 30d
+  configuration:
+    destinationPath: s3://backups/postgres
+    endpointURL: placeholder
+    s3Credentials:
+      accessKeyId:
+        name: s3
+        key: access-key
+      secretAccessKey:
+        name: s3
+        key: secret-key
+    wal:
+      compression: gzip
+      maxParallel: 8
+---
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: postgres
+  annotations:
+    cnpg.io/skipEmptyWalArchiveCheck: enabled
 spec:
   instances: 1
   imageName: ghcr.io/tensorchord/cloudnative-vectorchord:17-0.4.3
@@ -15,9 +37,23 @@ spec:
     size: 40Gi
 
   bootstrap:
-    initdb:
-      database: app
-      owner: app
+    recovery:
+      source: backup
+
+  externalClusters:
+    - name: backup
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: postgres
+          serverName: postgres
+
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: postgres
+        serverName: postgres
 
   managed:
     roles:
@@ -36,21 +72,6 @@ spec:
   monitoring:
     enablePodMonitor: true
 
-  backup:
-    retentionPolicy: 30d
-    barmanObjectStore:
-      destinationPath: s3://backups/postgres
-      endpointURL: placeholder
-      s3Credentials:
-        accessKeyId:
-          name: s3
-          key: access-key
-        secretAccessKey:
-          name: s3
-          key: secret-key
-      wal:
-        compression: gzip
-
   resources:
     requests:
       cpu: 200m
@@ -64,7 +85,11 @@ metadata:
   name: postgres
 spec:
   schedule: "0 0 3 * * *"
+  immediate: true
   backupOwnerReference: self
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
   cluster:
     name: postgres
 ---

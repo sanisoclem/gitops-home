@@ -11,6 +11,7 @@ data:
   NAS_PHOTOS_PATH: /mnt/main/usr/immich/upload
   NAS_KNOWLEDGE_PATH: /mnt/main/svc/knowledge
   NAS_EMBY_PATH: /mnt/main/usr/emby
+  NAS_APPS_PATH: /mnt/main/k8s/apps
 
   S3_ENDPOINT: http://10.11.7.30:30292
   S3_BACKUP_BUCKET: backups

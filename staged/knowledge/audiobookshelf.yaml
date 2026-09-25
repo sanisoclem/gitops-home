@@ -4,6 +4,7 @@ metadata:
   name: audiobookshelf
   labels:
     share: knowledge
+    nas-apps: "true"
 spec:
   replicas: 1
   strategy:
@@ -34,8 +35,9 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /config
-            - name: metadata
+            - name: apps
               mountPath: /metadata
+              subPath: knowledge/audiobookshelf/metadata
             - name: knowledge
               mountPath: /knowledge
           resources:
@@ -48,9 +50,10 @@ spec:
         - name: config
           persistentVolumeClaim:
             claimName: audiobookshelf-config
-        - name: metadata
-          persistentVolumeClaim:
-            claimName: audiobookshelf-meta
+        - name: apps
+          nfs:
+            server: placeholder
+            path: placeholder
         - name: knowledge
           nfs:
             server: placeholder
@@ -73,20 +76,11 @@ kind: PersistentVolumeClaim
 metadata:
   name: audiobookshelf-config
 spec:
+  storageClassName: block-backed
   accessModes: [ReadWriteOnce]
   resources:
     requests:
       storage: 2Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: audiobookshelf-meta
-spec:
-  accessModes: [ReadWriteOnce]
-  resources:
-    requests:
-      storage: 20Gi
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute

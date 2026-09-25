@@ -85,6 +85,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: plex
 spec:
+  storageClassName: block-backed
   accessModes: [ReadWriteOnce]
   resources:
     requests:

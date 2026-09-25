@@ -4,6 +4,7 @@ metadata:
   name: paperless
   labels:
     share: knowledge
+    nas-apps: "true"
 spec:
   replicas: 1
   strategy:
@@ -88,8 +89,9 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /usr/src/paperless/data
-            - name: media
+            - name: apps
               mountPath: /usr/src/paperless/media
+              subPath: knowledge/paperless/media
             - name: knowledge
               mountPath: /knowledge
           resources:
@@ -126,10 +128,11 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: paperless-state
-        - name: media
-          persistentVolumeClaim:
-            claimName: paperless-files
+            claimName: paperless-data
+        - name: apps
+          nfs:
+            server: placeholder
+            path: placeholder
         - name: knowledge
           nfs:
             server: placeholder
@@ -150,22 +153,13 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: paperless-state
+  name: paperless-data
 spec:
+  storageClassName: block-backed
   accessModes: [ReadWriteOnce]
   resources:
     requests:
       storage: 5Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: paperless-files
-spec:
-  accessModes: [ReadWriteOnce]
-  resources:
-    requests:
-      storage: 50Gi
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute

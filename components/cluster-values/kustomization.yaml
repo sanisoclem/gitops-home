@@ -20,9 +20,31 @@ replacements:
       fieldPath: data.S3_ENDPOINT
     targets:
       - select:
-          kind: Cluster
+          kind: ObjectStore
         fieldPaths:
-          - spec.backup.barmanObjectStore.endpointURL
+          - spec.configuration.endpointURL
+
+  - source:
+      kind: ConfigMap
+      name: home-config
+      fieldPath: data.NAS_HOST
+    targets:
+      - select:
+          kind: Deployment
+          labelSelector: nas-apps=true
+        fieldPaths:
+          - spec.template.spec.volumes.[name=apps].nfs.server
+
+  - source:
+      kind: ConfigMap
+      name: home-config
+      fieldPath: data.NAS_APPS_PATH
+    targets:
+      - select:
+          kind: Deployment
+          labelSelector: nas-apps=true
+        fieldPaths:
+          - spec.template.spec.volumes.[name=apps].nfs.path
 
   - source:
       kind: ConfigMap
