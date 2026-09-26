@@ -27,6 +27,117 @@ replacements:
   - source:
       kind: ConfigMap
       name: home-config
+      fieldPath: data.S3_BACKUP_BUCKET
+    targets:
+      - select:
+          kind: ObjectStore
+        fieldPaths:
+          - spec.configuration.destinationPath
+        options:
+          delimiter: '/'
+          index: 2
+
+  - source:
+      kind: ConfigMap
+      name: home-config
+      fieldPath: data.EGRESS_GATEWAY
+    targets:
+      - select:
+          kind: Deployment
+          labelSelector: egress=vpn
+        fieldPaths:
+          - spec.template.metadata.annotations.k8s\.v1\.cni\.cncf\.io/networks
+        options:
+          delimiter: '"'
+          index: 7
+      - select:
+          kind: NetworkAttachmentDefinition
+          name: vpn-egress
+        fieldPaths:
+          - spec.config
+        options:
+          delimiter: '"'
+          index: 43
+
+  - source:
+      kind: ConfigMap
+      name: home-config
+      fieldPath: data.EGRESS_SUBNET
+    targets:
+      - select:
+          kind: NetworkAttachmentDefinition
+          name: vpn-egress
+        fieldPaths:
+          - spec.config
+        options:
+          delimiter: '"'
+          index: 31
+
+  - source:
+      kind: ConfigMap
+      name: home-config
+      fieldPath: data.EGRESS_POD_RANGE
+      options:
+        delimiter: '-'
+        index: 0
+    targets:
+      - select:
+          kind: NetworkAttachmentDefinition
+          name: vpn-egress
+        fieldPaths:
+          - spec.config
+        options:
+          delimiter: '"'
+          index: 35
+
+  - source:
+      kind: ConfigMap
+      name: home-config
+      fieldPath: data.EGRESS_POD_RANGE
+      options:
+        delimiter: '-'
+        index: 1
+    targets:
+      - select:
+          kind: NetworkAttachmentDefinition
+          name: vpn-egress
+        fieldPaths:
+          - spec.config
+        options:
+          delimiter: '"'
+          index: 39
+
+  - source:
+      kind: ConfigMap
+      name: home-config
+      fieldPath: data.DNS_SERVERS
+      options:
+        delimiter: ','
+        index: 0
+    targets:
+      - select:
+          kind: Deployment
+          labelSelector: egress=vpn
+        fieldPaths:
+          - spec.template.spec.dnsConfig.nameservers.0
+
+  - source:
+      kind: ConfigMap
+      name: home-config
+      fieldPath: data.DNS_SERVERS
+      options:
+        delimiter: ','
+        index: 1
+    targets:
+      - select:
+          kind: Deployment
+          labelSelector: egress=vpn
+        fieldPaths:
+          - spec.template.spec.dnsConfig.nameservers.1
+
+  - source:
+      kind: ConfigMap
+      name: home-config
       fieldPath: data.NAS_HOST
     targets:
       - select:

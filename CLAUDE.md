@@ -8,4 +8,8 @@
 
 # Postgres
 
-`apps/services/postgres.yaml` bootstraps from its own backup and keeps archiving to it (`cnpg.io/skipEmptyWalArchiveCheck`). Never run a second cluster against `s3://backups/postgres` with `serverName: postgres`, and never change that `serverName`.
+`apps/services/postgres.yaml` bootstraps from its own backup and keeps archiving to it (`cnpg.io/skipEmptyWalArchiveCheck`). Never run a second cluster against its backup path with `serverName: postgres`, and never change that `serverName`.
+
+# Cluster values
+
+Addresses, names and paths come from homelab's `.env` through `config/cluster-config.yaml`, which `gitops:sync` writes; manifests carry `placeholder` and `components/cluster-values` fills it in. Never write an address into a manifest.

@@ -5,7 +5,7 @@ metadata:
 spec:
   retentionPolicy: 30d
   configuration:
-    destinationPath: s3://backups/postgres
+    destinationPath: s3://placeholder/postgres
     endpointURL: placeholder
     s3Credentials:
       accessKeyId:
