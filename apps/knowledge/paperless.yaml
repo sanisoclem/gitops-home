@@ -104,7 +104,7 @@ spec:
             limits:
               memory: 3Gi
         - name: r2-inbox
-          image: rclone/rclone:1.75.1
+          image: rclone/rclone:1.75.2
           command: ["/bin/sh", "-c"]
           args:
             - while true; do rclone move -v r2:paperless-inbox /knowledge/paperless-inbox; sleep 60; done
